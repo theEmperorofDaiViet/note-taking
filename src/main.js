@@ -5,7 +5,6 @@ const inputComponent = {
     template: `<input class="input is-small" type="text" :placeholder="placeholder" 
                 v-model="input" @keyup.enter="monitorEnterKey"/>`,
     props: ['placeholder'],
-    emits: ["add-note"],
     data() {
         return {
             input: ""
@@ -13,7 +12,7 @@ const inputComponent = {
     },
     methods: {
         monitorEnterKey() {
-            this.$emit("add-note", {
+            emitter.emit("add-note", {
                 note: this.input,
                 timestamp: new Date().toLocaleString()
             });
@@ -22,9 +21,26 @@ const inputComponent = {
     }
 };
 
+const noteCountComponent = {
+    /* html */
+    template:
+        `<div class="note-count">
+            Note count: <strong>{{ noteCount }}</strong>
+        </div>`,
+    data() {
+        return {
+            noteCount: 0
+        };
+    },
+    created() {
+        emitter.on("add-note", event => this.noteCount++)
+    }
+};
+
 const app = {
     components: {
-        'input-component': inputComponent
+        'input-component': inputComponent,
+        'note-count-component': noteCountComponent
     },
     data() {
         return {
@@ -38,6 +54,9 @@ const app = {
             this.notes.push(event.note);
             this.timestamps.push(event.timestamp)
         }
+    },
+    created() {
+        emitter.on("add-note", (event) => this.addNote(event));
     }
 };
 
